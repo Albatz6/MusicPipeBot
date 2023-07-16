@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using MusicPipeBot.Infrastructure;
 using MusicPipeBot.Infrastructure.Telegram;
 using MusicPipeBot.Infrastructure.Telegram.Interfaces;
+using MusicPipeBot.Services;
 using Telegram.Bot;
 using Telegram.Bot.Polling;
 
@@ -32,6 +33,7 @@ public static class GenericHostBuilder
                 services.AddSingleton<IUpdateHandler, UpdateHandlerService>();
                 services.AddSingleton<IReceiverService, ReceiverService>();
                 services.AddSingleton<IPollingService, PollingService>();
+                services.AddSingleton<IPipeService, PipeService>();
 
                 services.AddSingleton<IHostedService, HostingService>();
             });
