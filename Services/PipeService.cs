@@ -1,10 +1,12 @@
 ﻿using System.Diagnostics;
+using System.Runtime.InteropServices;
 using Microsoft.Extensions.Logging;
 
 namespace MusicPipeBot.Services;
 
 public class PipeService : IPipeService
 {
+    private const string UserfilesDirName = "userfiles";
     private readonly ILogger<PipeService> _logger;
 
     public PipeService(ILogger<PipeService> logger)
@@ -16,7 +18,7 @@ public class PipeService : IPipeService
     public string? DownloadTrack(string query)
     {
         var downloadId = Guid.NewGuid();
-        var downloadPath = $"userfiles\\{downloadId}";
+        var downloadPath = $"{UserfilesDirName}/{downloadId}";
         Directory.CreateDirectory(downloadPath);
 
         try
@@ -47,7 +49,7 @@ public class PipeService : IPipeService
         {
             try
             {
-                Directory.Delete($"userfiles\\{dir}", true);
+                Directory.Delete($"{UserfilesDirName}/{dir}", true);
             }
             catch (Exception ex)
             {
@@ -62,17 +64,16 @@ public class PipeService : IPipeService
 
     private static string ExecuteCommandLine(string arguments, string? workingDirectory = null)
     {
-        // '/C' carries out the specified command and then terminates
-        var command = $"/C {arguments}";
+        var (command, cmdName) = GetPlatformSpecificParams(arguments);
         var process = new Process();
         var startInfo = new ProcessStartInfo
         {
-            // Todo: remember there's Bash
             WorkingDirectory = workingDirectory,
-            FileName = "cmd.exe",
+            FileName = cmdName,
             Arguments = command,
             RedirectStandardOutput = true,
-            UseShellExecute = false
+            UseShellExecute = false,
+            CreateNoWindow = true
         };
         process.StartInfo = startInfo;
         process.Start();
@@ -81,5 +82,26 @@ public class PipeService : IPipeService
         process.WaitForExit();
 
         return standardOutput;
+    }
+
+    private static (string Command, string CmdName) GetPlatformSpecificParams(string arguments)
+    {
+        string command;
+        string cmdName;
+
+        var isLinux = RuntimeInformation.IsOSPlatform(OSPlatform.Linux);
+        if (isLinux)
+        {
+            command = $"-c \"{arguments}\"";
+            cmdName = "/bin/bash";
+        }
+        else
+        {
+            // '/C' carries out the specified command and then terminates
+            command = $"/C {arguments}";
+            cmdName = "cmd.exe";
+        }
+
+        return (command, cmdName);
     }
 }

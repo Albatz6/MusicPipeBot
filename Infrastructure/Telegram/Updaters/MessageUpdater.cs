@@ -53,7 +53,7 @@ public class MessageUpdater : IMessageUpdater
             return await SendTextMessage(message.Chat.Id, "Couldn't download the track. Check your URL", stoppingToken);
 
         await _botClient.SendChatActionAsync(message.Chat.Id, ChatAction.UploadDocument, cancellationToken: stoppingToken);
-        var separatedPath = trackFile.Split(Path.DirectorySeparatorChar);
+        var separatedPath = trackFile.Split(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
         var (downloadId, fileName) = (separatedPath[1], separatedPath.Last());
 
         Message? sentMessage;
