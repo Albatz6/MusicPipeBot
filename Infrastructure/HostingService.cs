@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using MusicPipeBot.Infrastructure.Telegram.Interfaces;
+using MusicPipeBot.Infrastructure.Telegram.Core.Interfaces;
 
 namespace MusicPipeBot.Infrastructure;
 

@@ -1,10 +1,10 @@
 ﻿using Microsoft.Extensions.Logging;
-using MusicPipeBot.Infrastructure.Telegram.Interfaces;
+using MusicPipeBot.Infrastructure.Telegram.Core.Interfaces;
 using Telegram.Bot;
 using Telegram.Bot.Polling;
 using Telegram.Bot.Types.Enums;
 
-namespace MusicPipeBot.Infrastructure.Telegram;
+namespace MusicPipeBot.Infrastructure.Telegram.Core;
 
 public class ReceiverService : IReceiverService
 {
@@ -21,9 +21,8 @@ public class ReceiverService : IReceiverService
     }
 
     /// <summary>
-    /// Start to service Updates with UpdateHandler
+    /// Start to service Updates with UpdateHandlerService
     /// </summary>
-    /// <param name="stoppingToken"></param>
     public async Task ReceiveAsync(CancellationToken stoppingToken)
     {
         var receiverOptions = new ReceiverOptions

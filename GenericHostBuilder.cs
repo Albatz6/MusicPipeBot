@@ -3,8 +3,9 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using MusicPipeBot.Infrastructure;
-using MusicPipeBot.Infrastructure.Telegram;
-using MusicPipeBot.Infrastructure.Telegram.Interfaces;
+using MusicPipeBot.Infrastructure.Telegram.Core;
+using MusicPipeBot.Infrastructure.Telegram.Core.Interfaces;
+using MusicPipeBot.Infrastructure.Telegram.Updaters;
 using MusicPipeBot.Services;
 using Telegram.Bot;
 using Telegram.Bot.Polling;
@@ -30,6 +31,7 @@ public static class GenericHostBuilder
                 services.AddSingleton<ISecretsService, SecretsService>();
                 services.AddSingleton<ITelegramBotClient>(sp => sp.GetTelegramBotClient());
 
+                services.AddSingleton<IMessageUpdater, MessageUpdater>();
                 services.AddSingleton<IUpdateHandler, UpdateHandlerService>();
                 services.AddSingleton<IReceiverService, ReceiverService>();
                 services.AddSingleton<IPollingService, PollingService>();

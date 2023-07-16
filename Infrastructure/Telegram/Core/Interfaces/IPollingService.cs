@@ -1,4 +1,4 @@
-﻿namespace MusicPipeBot.Infrastructure.Telegram.Interfaces;
+﻿namespace MusicPipeBot.Infrastructure.Telegram.Core.Interfaces;
 
 public interface IPollingService
 {

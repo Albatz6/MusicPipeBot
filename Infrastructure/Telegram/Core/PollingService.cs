@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
-using MusicPipeBot.Infrastructure.Telegram.Interfaces;
+using MusicPipeBot.Infrastructure.Telegram.Core.Interfaces;
 
-namespace MusicPipeBot.Infrastructure.Telegram;
+namespace MusicPipeBot.Infrastructure.Telegram.Core;
 
 public class PollingService : IPollingService
 {

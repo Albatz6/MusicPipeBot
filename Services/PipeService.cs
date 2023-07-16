@@ -15,29 +15,39 @@ public class PipeService : IPipeService
     /// <returns>Path to saved file</returns>
     public string? DownloadTrack(string query)
     {
-        var downloadId = Guid.NewGuid().ToString();
-        Directory.CreateDirectory(downloadId);
+        var downloadId = Guid.NewGuid();
+        var downloadPath = $"userfiles\\{downloadId}";
+        Directory.CreateDirectory(downloadPath);
 
-        var result = ExecuteCommandLine($"spotdl download {query}", downloadId);
-        if (result.Contains("SongError: No results found for"))
+        try
         {
-            _logger.LogWarning("Couldn't find track download link for query '{query}'", query);
-            RemoveTemporaryDirectories(new[] { downloadId });
+            var result = ExecuteCommandLine($"spotdl download {query}", downloadPath);
+            if (result.Contains("SongError: No results found for"))
+            {
+                _logger.LogWarning("Couldn't find track download link for query '{query}'", query);
+                RemoveTemporaryDirectories(new[] { downloadId.ToString() });
+                return null;
+            }
+
+            var trackPath = Directory.GetFiles(downloadPath).FirstOrDefault();
+            _logger.LogInformation("Loaded file {path}", trackPath);
+            _logger.LogInformation("Full SpotDL response: {response}", result);
+            return trackPath;
+        }
+        catch (Exception e)
+        {
+            _logger.LogError("SpotDL execution failed. Error: {message}", e.Message);
             return null;
         }
-
-        var trackPath = Directory.GetFiles(downloadId).FirstOrDefault();
-        _logger.LogInformation("Loaded file {path}", result);
-        return trackPath;
     }
 
-    public bool RemoveTemporaryDirectories(IEnumerable<string> dirNames)
+    public bool RemoveTemporaryDirectories(IEnumerable<string> directories)
     {
-        foreach (var dir in dirNames)
+        foreach (var dir in directories)
         {
             try
             {
-                Directory.Delete(dir, true);
+                Directory.Delete($"userfiles\\{dir}", true);
             }
             catch (Exception ex)
             {
