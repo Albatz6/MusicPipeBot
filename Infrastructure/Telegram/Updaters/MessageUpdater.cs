@@ -46,7 +46,7 @@ public class MessageUpdater : IMessageUpdater
         if (url is null)
             return await SendTextMessage(message.Chat.Id, "Invalid URL", stoppingToken);
 
-        _logger.LogInformation("Started track downloading & sending");
+        _logger.LogInformation("Started track downloading & sending. Query: {query}", url);
         await SendTextMessage(message.Chat.Id, "Downloading the track can take up to a minute, please wait :)", stoppingToken);
         var trackFile = _pipe.DownloadTrack(url);
         if (trackFile is null)
