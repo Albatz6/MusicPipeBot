@@ -44,7 +44,10 @@ public class MessageUpdater : IMessageUpdater
     {
         var url = GetUrlFromQuery(message.Text);
         if (url is null)
-            return await SendTextMessage(message.Chat.Id, "Invalid URL", stoppingToken);
+            return await SendTextMessage(
+                message.Chat.Id,
+                "Invalid URL. Check if you're trying to download a track, not an album or any other playlist",
+                stoppingToken);
 
         _logger.LogInformation("Started track downloading & sending. Query: {query}", url);
         await SendTextMessage(message.Chat.Id, "Downloading the track can take up to a minute, please wait :)", stoppingToken);
@@ -83,7 +86,14 @@ public class MessageUpdater : IMessageUpdater
         if (keywords.Length <= 1)
             return null;
 
-        return string.IsNullOrWhiteSpace(keywords[1]) ? null : keywords[1];
+        if (string.IsNullOrWhiteSpace(keywords[1]))
+            return null;
+
+        // These are the markers of track link for Spotify and YTMusic
+        if (!keywords[1].Contains("track") && !keywords[1].Contains("watch"))
+            return null;
+
+        return keywords[1];
     }
 
     private async Task<Message> SendTextMessage(long chatId, string text, CancellationToken stoppingToken) =>
