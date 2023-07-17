@@ -5,3 +5,7 @@ riderModule.iml
 /_ReSharper.Caches/
 config.json
 config-testing.json
+.idea/
+.vscode/
+*.DotSettings
+*.DotSettings.*
