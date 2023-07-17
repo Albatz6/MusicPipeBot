@@ -1,5 +1,4 @@
-﻿using System.Reflection;
-using Microsoft.Extensions.Configuration;
+﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -25,9 +24,14 @@ public static class GenericHostBuilder
             })
             .ConfigureServices((_, services) =>
             {
+                var configFilename = "config.json";
+                #if DEBUG
+                    configFilename = "config-testing.json";
+                #endif
+
                 services.AddSingleton(new ConfigurationBuilder()
                     .SetBasePath(Directory.GetCurrentDirectory())
-                    .AddJsonFile("config.json", optional: false));
+                    .AddJsonFile(configFilename, optional: false));
 
                 services.AddSingleton<ISecretsService, SecretsService>();
                 services.AddSingleton<ITelegramBotClient>(sp => sp.GetTelegramBotClient());

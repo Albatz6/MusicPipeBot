@@ -1,6 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MusicPipeBot", "MusicPipeBot.csproj", "{B6934E15-F7F4-4969-995B-1C1FEA2D13A9}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MusicPipeBot", "src\MusicPipeBot\MusicPipeBot.csproj", "{9A7F76E5-523F-469B-B5BE-A8EB7C90B158}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -8,9 +8,9 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{B6934E15-F7F4-4969-995B-1C1FEA2D13A9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{B6934E15-F7F4-4969-995B-1C1FEA2D13A9}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{B6934E15-F7F4-4969-995B-1C1FEA2D13A9}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{B6934E15-F7F4-4969-995B-1C1FEA2D13A9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9A7F76E5-523F-469B-B5BE-A8EB7C90B158}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9A7F76E5-523F-469B-B5BE-A8EB7C90B158}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9A7F76E5-523F-469B-B5BE-A8EB7C90B158}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9A7F76E5-523F-469B-B5BE-A8EB7C90B158}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
