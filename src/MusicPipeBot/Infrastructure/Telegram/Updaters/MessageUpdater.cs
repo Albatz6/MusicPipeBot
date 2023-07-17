@@ -42,21 +42,12 @@ public class MessageUpdater : IMessageUpdater
 
     private async Task<Message> SendTrackFile(Message message, CancellationToken stoppingToken)
     {
-        var url = GetUrlFromQuery(message.Text);
-        if (url is null)
-            return await SendTextMessage(
-                message.Chat.Id,
-                "Invalid URL. Check if you're trying to download a track, not an album or any other playlist",
-                stoppingToken);
-
-        _logger.LogInformation("Started track downloading & sending. Query: {query}", url);
-        await SendTextMessage(message.Chat.Id, "Downloading the track can take up to a minute, please wait :)", stoppingToken);
-        var trackFile = _pipe.DownloadTrack(url);
-        if (trackFile is null)
-            return await SendTextMessage(message.Chat.Id, "Couldn't download the track. Check your URL", stoppingToken);
+        var (errorMessage, trackFile) = await DownloadAndGetTrackFilePath(message, stoppingToken);
+        if (errorMessage is not null)
+            return errorMessage;
 
         await _botClient.SendChatActionAsync(message.Chat.Id, ChatAction.UploadDocument, cancellationToken: stoppingToken);
-        var separatedPath = trackFile.Split(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+        var separatedPath = trackFile!.Split(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
         var (downloadId, fileName) = (separatedPath[1], separatedPath.Last());
 
         Message? sentMessage;
@@ -67,6 +58,30 @@ public class MessageUpdater : IMessageUpdater
 
         _pipe.RemoveTemporaryDirectories(new[] { downloadId });
         return sentMessage;
+    }
+
+    private async Task<(Message? Sent, string? Url)> DownloadAndGetTrackFilePath(Message message, CancellationToken stoppingToken)
+    {
+        var url = GetUrlFromQuery(message.Text);
+        if (url is null)
+        {
+            _logger.LogWarning("Invalid URL. Full user's message: '{url}'", message.Text);
+            var sentMessage = await SendTextMessage(
+                message.Chat.Id,
+                "Invalid URL. Check if you're trying to download a track, not an album or any other playlist",
+                stoppingToken);
+            return (sentMessage, null);
+        }
+
+        _logger.LogInformation("Started track downloading & sending. Query: {query}", url);
+        await SendTextMessage(message.Chat.Id, "Downloading the track can take up to a minute, please wait :)", stoppingToken);
+
+        var trackFile = _pipe.DownloadTrack(url);
+        if (trackFile is not null)
+            return (null, trackFile);
+
+        return (await SendTextMessage(message.Chat.Id, "Couldn't download the track. Check your URL", stoppingToken),
+                null);
     }
 
     private async Task<Message> ShowUsage(Message message, CancellationToken stoppingToken)
@@ -82,7 +97,8 @@ public class MessageUpdater : IMessageUpdater
         if (query is null)
             return null;
 
-        var keywords = query.Split(' ');
+        // Separate by ; and & in case somebody tries injecting other commands into the query
+        var keywords = query.Split(' ', ';', '&');
         if (keywords.Length <= 1)
             return null;
 
