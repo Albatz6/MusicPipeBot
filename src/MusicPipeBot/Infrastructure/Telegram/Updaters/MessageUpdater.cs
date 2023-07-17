@@ -93,7 +93,9 @@ public class MessageUpdater : IMessageUpdater
         if (!keywords[1].Contains("track") && !keywords[1].Contains("watch"))
             return null;
 
-        return keywords[1];
+        var validUri = Uri.TryCreate(keywords[1], UriKind.Absolute, out var uriResult)
+                      && (uriResult.Scheme == Uri.UriSchemeHttp || uriResult.Scheme == Uri.UriSchemeHttps);
+        return validUri ? keywords[1] : null;
     }
 
     private async Task<Message> SendTextMessage(long chatId, string text, CancellationToken stoppingToken) =>
