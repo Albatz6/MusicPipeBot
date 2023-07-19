@@ -105,13 +105,19 @@ public class MessageUpdater : IMessageUpdater
         if (string.IsNullOrWhiteSpace(keywords[1]))
             return null;
 
+        if (keywords[1].Contains("youtu.be"))
+        {
+            var ytHash = keywords[1].Split('/').LastOrDefault();
+            return ytHash == default ? null : $"https://music.youtube.com/watch?v={ytHash}";
+        }
+
         // These are the markers of track link for Spotify and YTMusic
         if (!keywords[1].Contains("track") && !keywords[1].Contains("watch"))
             return null;
 
         var validUri = Uri.TryCreate(keywords[1], UriKind.Absolute, out var uriResult)
-                      && (uriResult.Scheme == Uri.UriSchemeHttp || uriResult.Scheme == Uri.UriSchemeHttps);
-        return validUri ? keywords[1] : null;
+                       && (uriResult.Scheme == Uri.UriSchemeHttp || uriResult.Scheme == Uri.UriSchemeHttps);
+        return !validUri ? null : keywords[1];
     }
 
     private async Task<Message> SendTextMessage(long chatId, string text, CancellationToken stoppingToken) =>
