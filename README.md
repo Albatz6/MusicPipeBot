@@ -3,7 +3,7 @@ Telegram bot to download music from Spotify or Youtube Music. Currently supports
 Uses [SpotDL](https://github.com/spotDL/spotify-downloader) for searching and downloading.
 
 ## How to run
-Just add `config.json` or `config-testing.json` for debugging in project's folder containing the following structure:
+Just add `config.json` (or `config-testing.json` for debugging) in project's folder containing the following structure:
 ```json
 {
   "TelegramBotCredentials": {
