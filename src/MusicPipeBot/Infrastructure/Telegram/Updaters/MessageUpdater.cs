@@ -94,6 +94,24 @@ public class MessageUpdater : IMessageUpdater
 
     private static string? GetUrlFromQuery(string? query)
     {
+        var validatedQuery = ValidateQuery(query);
+        if (validatedQuery == default)
+            return null;
+
+        if (validatedQuery.Contains("youtu.be"))
+            return GetYoutubeUrl(validatedQuery);
+
+        // These are the markers of track link for Spotify and YTMusic
+        if (!validatedQuery.Contains("track") && !validatedQuery.Contains("watch"))
+            return null;
+
+        var isValidUri = Uri.TryCreate(validatedQuery, UriKind.Absolute, out var uriResult)
+                       && (uriResult.Scheme == Uri.UriSchemeHttp || uriResult.Scheme == Uri.UriSchemeHttps);
+        return !isValidUri ? null : validatedQuery;
+    }
+
+    private static string? ValidateQuery(string? query)
+    {
         if (query is null)
             return null;
 
@@ -102,22 +120,18 @@ public class MessageUpdater : IMessageUpdater
         if (keywords.Length <= 1)
             return null;
 
-        if (string.IsNullOrWhiteSpace(keywords[1]))
+        return string.IsNullOrWhiteSpace(keywords[1]) ? null : keywords[1];
+    }
+
+    private static string? GetYoutubeUrl(string validatedQuery)
+    {
+        var ytHashWithQueryParams = validatedQuery.Split('/').LastOrDefault();
+        if (ytHashWithQueryParams == default)
             return null;
 
-        if (keywords[1].Contains("youtu.be"))
-        {
-            var ytHash = keywords[1].Split('/').LastOrDefault();
-            return ytHash == default ? null : $"https://music.youtube.com/watch?v={ytHash}";
-        }
-
-        // These are the markers of track link for Spotify and YTMusic
-        if (!keywords[1].Contains("track") && !keywords[1].Contains("watch"))
-            return null;
-
-        var validUri = Uri.TryCreate(keywords[1], UriKind.Absolute, out var uriResult)
-                       && (uriResult.Scheme == Uri.UriSchemeHttp || uriResult.Scheme == Uri.UriSchemeHttps);
-        return !validUri ? null : keywords[1];
+        // Avoiding all those analytical query params like "si"
+        var ytHash = ytHashWithQueryParams.Split('?').FirstOrDefault();
+        return ytHash == default ? null : $"https://music.youtube.com/watch?v={ytHash}";
     }
 
     private async Task<Message> SendTextMessage(long chatId, string text, CancellationToken stoppingToken) =>
