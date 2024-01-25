@@ -6,22 +6,16 @@ using Telegram.Bot.Types.Enums;
 
 namespace MusicPipeBot.Infrastructure.Telegram.Updaters;
 
-public class MessageUpdater : IMessageUpdater
+public interface IMessageUpdater
 {
-    private readonly ITelegramBotClient _botClient;
-    private readonly IPipeService _pipe;
-    private readonly ILogger<MessageUpdater> _logger;
+    Task ProcessMessageReceive(Message message, CancellationToken stoppingToken);
+}
 
-    public MessageUpdater(ITelegramBotClient botClient, IPipeService pipe, ILogger<MessageUpdater> logger)
-    {
-        _botClient = botClient;
-        _pipe = pipe;
-        _logger = logger;
-    }
-
+public class MessageUpdater(ITelegramBotClient botClient, IPipeService pipe, ILogger<MessageUpdater> logger) : IMessageUpdater
+{
     public async Task ProcessMessageReceive(Message message, CancellationToken stoppingToken)
     {
-        _logger.LogInformation(
+        logger.LogInformation(
             "Received message from {user}. Message type: {MessageType}", message.From, message.Type);
         if (message.Text is not { } messageText)
             return;
@@ -33,7 +27,7 @@ public class MessageUpdater : IMessageUpdater
             _ => await ShowUsage(message, stoppingToken)
         };
 
-        _logger.LogInformation("The message was sent with id: {SentMessageId}", sentMessage.MessageId);
+        logger.LogInformation("The message was sent with id: {SentMessageId}", sentMessage.MessageId);
     }
 
     private async Task<Message> SendStartingReply(Message message, CancellationToken stoppingToken) =>
@@ -46,17 +40,17 @@ public class MessageUpdater : IMessageUpdater
         if (errorMessage is not null)
             return errorMessage;
 
-        await _botClient.SendChatActionAsync(message.Chat.Id, ChatAction.UploadDocument, cancellationToken: stoppingToken);
+        await botClient.SendChatActionAsync(message.Chat.Id, ChatAction.UploadDocument, cancellationToken: stoppingToken);
         var separatedPath = trackFile!.Split(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
         var (downloadId, fileName) = (separatedPath[1], separatedPath.Last());
 
         Message? sentMessage;
         await using (FileStream fileStream = new(trackFile, FileMode.Open, FileAccess.Read, FileShare.Read))
-            sentMessage = await _botClient.SendAudioAsync(
+            sentMessage = await botClient.SendAudioAsync(
                 chatId: message.Chat.Id, audio: new InputFileStream(fileStream, fileName),
                 cancellationToken: stoppingToken);
 
-        _pipe.RemoveTemporaryDirectories(new[] { downloadId });
+        pipe.RemoveTemporaryDirectories(new[] { downloadId });
         return sentMessage;
     }
 
@@ -65,7 +59,7 @@ public class MessageUpdater : IMessageUpdater
         var url = GetUrlFromQuery(message.Text);
         if (url is null)
         {
-            _logger.LogWarning("Invalid URL. Full user's message: '{url}'", message.Text);
+            logger.LogWarning("Invalid URL. Full user's message: '{url}'", message.Text);
             var sentMessage = await SendTextMessage(
                 message.Chat.Id,
                 "Invalid URL. Check if you're trying to download a track, not an album or any other playlist",
@@ -73,10 +67,10 @@ public class MessageUpdater : IMessageUpdater
             return (sentMessage, null);
         }
 
-        _logger.LogInformation("Started track downloading & sending. Query: {query}", url);
+        logger.LogInformation("Started track downloading & sending. Query: {query}", url);
         await SendTextMessage(message.Chat.Id, "Downloading the track can take up to a minute, please wait :)", stoppingToken);
 
-        var trackFile = _pipe.DownloadTrack(url);
+        var trackFile = pipe.DownloadTrack(url);
         if (trackFile is not null)
             return (null, trackFile);
 
@@ -135,8 +129,8 @@ public class MessageUpdater : IMessageUpdater
     }
 
     private async Task<Message> SendTextMessage(long chatId, string text, CancellationToken stoppingToken) =>
-        await _botClient.SendTextMessageAsync(chatId, text, cancellationToken: stoppingToken);
+        await botClient.SendTextMessageAsync(chatId, text, cancellationToken: stoppingToken);
 
     private async Task<Message> SendMarkupTextMessage(long chatId, string text, CancellationToken stoppingToken) =>
-        await _botClient.SendTextMessageAsync(chatId, text, parseMode: ParseMode.MarkdownV2, cancellationToken: stoppingToken);
+        await botClient.SendTextMessageAsync(chatId, text, parseMode: ParseMode.MarkdownV2, cancellationToken: stoppingToken);
 }

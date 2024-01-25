@@ -4,7 +4,6 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using MusicPipeBot.Infrastructure;
 using MusicPipeBot.Infrastructure.Telegram.Core;
-using MusicPipeBot.Infrastructure.Telegram.Core.Interfaces;
 using MusicPipeBot.Infrastructure.Telegram.Updaters;
 using MusicPipeBot.Services;
 using Telegram.Bot;

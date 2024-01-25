@@ -7,22 +7,13 @@ using Telegram.Bot.Types;
 
 namespace MusicPipeBot.Infrastructure.Telegram.Core;
 
-public class UpdateHandlerService : IUpdateHandler
+public class UpdateHandlerService(IMessageUpdater messageUpdater, ILogger<UpdateHandlerService> logger) : IUpdateHandler
 {
-    private readonly IMessageUpdater _messageUpdater;
-    private readonly ILogger<UpdateHandlerService> _logger;
-
-    public UpdateHandlerService(IMessageUpdater messageUpdater, ILogger<UpdateHandlerService> logger)
-    {
-        _messageUpdater = messageUpdater;
-        _logger = logger;
-    }
-
     public async Task HandleUpdateAsync(ITelegramBotClient _, Update update, CancellationToken stoppingToken)
     {
         var handler = update switch
         {
-            { Message: { } message } => _messageUpdater.ProcessMessageReceive(message, stoppingToken),
+            { Message: { } message } => messageUpdater.ProcessMessageReceive(message, stoppingToken),
             _ => HandleUnknownUpdate(update)
         };
 
@@ -38,7 +29,7 @@ public class UpdateHandlerService : IUpdateHandler
             _ => exception.ToString()
         };
 
-        _logger.LogInformation("Polling failure. Error: {errorMessage}", errorMessage);
+        logger.LogInformation("Polling failure. Error: {errorMessage}", errorMessage);
 
         // Cooldown in case of network connection error
         if (exception is RequestException)
@@ -47,7 +38,7 @@ public class UpdateHandlerService : IUpdateHandler
 
     private Task HandleUnknownUpdate(Update update)
     {
-        _logger.LogInformation("Unknown or unsupported update type: {UpdateType}", update.Type);
+        logger.LogInformation("Unknown or unsupported update type: {UpdateType}", update.Type);
         return Task.CompletedTask;
     }
 }

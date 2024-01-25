@@ -1,31 +1,23 @@
 ﻿using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using MusicPipeBot.Infrastructure.Telegram.Core.Interfaces;
+using MusicPipeBot.Infrastructure.Telegram.Core;
 
 namespace MusicPipeBot.Infrastructure;
 
-public class HostingService : BackgroundService
+public class HostingService(
+    IHostApplicationLifetime lifetime,
+    IPollingService pollingService,
+    ILogger<HostingService> logger)
+    : BackgroundService
 {
-    private readonly IHostApplicationLifetime _lifetime;
-    private readonly IPollingService _pollingService;
-    private readonly ILogger<HostingService> _logger;
-
-    public HostingService(
-        IHostApplicationLifetime lifetime, IPollingService pollingService, ILogger<HostingService> logger)
-    {
-        _lifetime = lifetime;
-        _pollingService = pollingService;
-        _logger = logger;
-    }
-
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        _logger.LogInformation("HostingService is starting...");
-        if (!await WaitForAppStartup(_lifetime, stoppingToken))
+        logger.LogInformation("HostingService is starting...");
+        if (!await WaitForAppStartup(lifetime, stoppingToken))
             return;
 
         while (!stoppingToken.IsCancellationRequested)
-            await _pollingService.PollAsync(stoppingToken);
+            await pollingService.PollAsync(stoppingToken);
     }
 
     private static async Task<bool> WaitForAppStartup(IHostApplicationLifetime lifetime, CancellationToken stoppingToken)

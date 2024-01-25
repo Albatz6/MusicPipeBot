@@ -4,15 +4,15 @@ using Microsoft.Extensions.Logging;
 
 namespace MusicPipeBot.Services;
 
-public class PipeService : IPipeService
+public interface IPipeService
+{
+    string? DownloadTrack(string query);
+    bool RemoveTemporaryDirectories(IEnumerable<string> directories);
+}
+
+public class PipeService(ILogger<PipeService> logger) : IPipeService
 {
     private const string UserfilesDirName = "userfiles";
-    private readonly ILogger<PipeService> _logger;
-
-    public PipeService(ILogger<PipeService> logger)
-    {
-        _logger = logger;
-    }
 
     /// <returns>Path to saved file</returns>
     public string? DownloadTrack(string query)
@@ -26,19 +26,19 @@ public class PipeService : IPipeService
             var result = ExecuteCommandLine($"spotdl download {query}", downloadPath);
             if (result.Contains("SongError: No results found for"))
             {
-                _logger.LogWarning("Couldn't find track download link for query '{query}'", query);
+                logger.LogWarning("Couldn't find track download link for query '{query}'", query);
                 RemoveTemporaryDirectories(new[] { downloadId.ToString() });
                 return null;
             }
 
             var trackPath = Directory.GetFiles(downloadPath).FirstOrDefault();
-            _logger.LogInformation("Loaded file {path}", trackPath);
-            _logger.LogInformation("Full SpotDL response: {response}", result);
+            logger.LogInformation("Loaded file {path}", trackPath);
+            logger.LogInformation("Full SpotDL response: {response}", result);
             return trackPath;
         }
         catch (Exception e)
         {
-            _logger.LogError("SpotDL execution failed. Error: {message}", e.Message);
+            logger.LogError("SpotDL execution failed. Error: {message}", e.Message);
             return null;
         }
     }
@@ -53,12 +53,12 @@ public class PipeService : IPipeService
             }
             catch (Exception ex)
             {
-                _logger.LogError("Couldn't delete dir {name}. Error: {error}", dir, ex.Message);
+                logger.LogError("Couldn't delete dir {name}. Error: {error}", dir, ex.Message);
                 return false;
             }
         }
 
-        _logger.LogInformation("Successfully removed all temporary directories");
+        logger.LogInformation("Successfully removed all temporary directories");
         return true;
     }
 

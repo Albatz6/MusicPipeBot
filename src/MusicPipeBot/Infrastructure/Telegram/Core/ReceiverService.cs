@@ -1,25 +1,21 @@
 ﻿using Microsoft.Extensions.Logging;
-using MusicPipeBot.Infrastructure.Telegram.Core.Interfaces;
 using Telegram.Bot;
 using Telegram.Bot.Polling;
 using Telegram.Bot.Types.Enums;
 
 namespace MusicPipeBot.Infrastructure.Telegram.Core;
 
-public class ReceiverService : IReceiverService
+public interface IReceiverService
 {
-    private readonly ITelegramBotClient _botClient;
-    private readonly IUpdateHandler _updateHandler;
-    private readonly ILogger<ReceiverService> _logger;
+    Task ReceiveAsync(CancellationToken stoppingToken);
+}
 
-    public ReceiverService(
-        ITelegramBotClient botClient, IUpdateHandler updateHandler, ILogger<ReceiverService> logger)
-    {
-        _botClient = botClient;
-        _updateHandler = updateHandler;
-        _logger = logger;
-    }
-
+public class ReceiverService(
+    ITelegramBotClient botClient,
+    IUpdateHandler updateHandler,
+    ILogger<ReceiverService> logger)
+    : IReceiverService
+{
     /// <summary>
     /// Start to service Updates with UpdateHandlerService
     /// </summary>
@@ -31,10 +27,10 @@ public class ReceiverService : IReceiverService
             ThrowPendingUpdates = true
         };
 
-        var bot = await _botClient.GetMeAsync(stoppingToken);
-        _logger.LogInformation("Start receiving updates for {botName}", bot.Username ?? "MusicPipeBot");
+        var bot = await botClient.GetMeAsync(stoppingToken);
+        logger.LogInformation("Start receiving updates for {botName}", bot.Username ?? "MusicPipeBot");
 
-        await _botClient.ReceiveAsync(
-            updateHandler: _updateHandler, receiverOptions: receiverOptions, cancellationToken: stoppingToken);
+        await botClient.ReceiveAsync(
+            updateHandler: updateHandler, receiverOptions: receiverOptions, cancellationToken: stoppingToken);
     }
 }
