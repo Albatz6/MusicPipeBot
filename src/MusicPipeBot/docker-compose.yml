@@ -6,7 +6,7 @@ services:
       dockerfile: ./Dockerfile
     image: musicpipebot/latest
     ports:
-      - "8098:80"
+      - "8098:8080"
     networks:
       - musicpipe
     restart: unless-stopped
