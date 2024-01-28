@@ -89,17 +89,17 @@ public class PipeService(ILogger<PipeService> logger) : IPipeService
         string command;
         string cmdName;
 
-        var isLinux = RuntimeInformation.IsOSPlatform(OSPlatform.Linux);
-        if (isLinux)
-        {
-            command = $"-c \"{arguments}\"";
-            cmdName = "/bin/bash";
-        }
-        else
+        var isWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
+        if (isWindows)
         {
             // '/C' carries out the specified command and then terminates
             command = $"/C {arguments}";
             cmdName = "cmd.exe";
+        }
+        else
+        {
+            command = $"-c \"{arguments}\"";
+            cmdName = "/bin/bash";
         }
 
         return (command, cmdName);
