@@ -5,8 +5,9 @@ RUN apt-get update && apt-get upgrade -y
 RUN apt-get install python3-pip -y
 RUN apt install ffmpeg -y
 RUN pip3 install spotdl --break-system-packages
-# Other solutions include using apt install python3-spotdl or something similar for system-wide installation
-# Or using venv like showed below
+# Other solutions to avoid system & python packages mixing:
+# 1. Use apt install python3-spotdl or something similar for system-wide installation
+# 2. Use venv like showed below
 #RUN python3 -m venv .venv
 #RUN . ./.venv/bin/activate && pip install spotdl
 
