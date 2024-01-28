@@ -4,9 +4,13 @@ WORKDIR /app
 RUN apt-get update && apt-get upgrade -y
 RUN apt-get install python3-pip -y
 RUN apt install ffmpeg -y
-RUN pip3 install spotdl
+RUN pip3 install spotdl --break-system-packages
+# Other solutions include using apt install python3-spotdl or something similar for system-wide installation
+# Or using venv like showed below
+#RUN python3 -m venv .venv
+#RUN . ./.venv/bin/activate && pip install spotdl
 
-FROM mcr.microsoft.com/dotnet/sdk:7.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 COPY ["MusicPipeBot.csproj", "./"]
 RUN dotnet restore "MusicPipeBot.csproj"
