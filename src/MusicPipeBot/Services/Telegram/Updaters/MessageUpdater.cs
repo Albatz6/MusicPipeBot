@@ -1,10 +1,8 @@
-﻿using Microsoft.Extensions.Logging;
-using MusicPipeBot.Services;
-using Telegram.Bot;
+﻿using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 
-namespace MusicPipeBot.Infrastructure.Telegram.Updaters;
+namespace MusicPipeBot.Services.Telegram.Updaters;
 
 public interface IMessageUpdater
 {

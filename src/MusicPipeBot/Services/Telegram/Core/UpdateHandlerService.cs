@@ -1,11 +1,10 @@
-﻿using Microsoft.Extensions.Logging;
-using MusicPipeBot.Infrastructure.Telegram.Updaters;
+﻿using MusicPipeBot.Services.Telegram.Updaters;
 using Telegram.Bot;
 using Telegram.Bot.Exceptions;
 using Telegram.Bot.Polling;
 using Telegram.Bot.Types;
 
-namespace MusicPipeBot.Infrastructure.Telegram.Core;
+namespace MusicPipeBot.Services.Telegram.Core;
 
 public class UpdateHandlerService(IMessageUpdater messageUpdater, ILogger<UpdateHandlerService> logger) : IUpdateHandler
 {

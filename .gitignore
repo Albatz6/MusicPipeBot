@@ -3,8 +3,8 @@ obj/
 /packages/
 riderModule.iml
 /_ReSharper.Caches/
-config.json
-config-testing.json
+appsettings.json
+appsettings.Development.json
 .idea/
 .vscode/
 *.DotSettings

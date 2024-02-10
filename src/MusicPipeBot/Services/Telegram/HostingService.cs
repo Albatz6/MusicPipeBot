@@ -1,8 +1,6 @@
-﻿using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
-using MusicPipeBot.Infrastructure.Telegram.Core;
+﻿using MusicPipeBot.Services.Telegram.Core;
 
-namespace MusicPipeBot.Infrastructure;
+namespace MusicPipeBot.Services.Telegram;
 
 public class HostingService(
     IHostApplicationLifetime lifetime,

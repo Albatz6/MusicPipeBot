@@ -1,6 +1,4 @@
-﻿using Microsoft.Extensions.Logging;
-
-namespace MusicPipeBot.Infrastructure.Telegram.Core;
+﻿namespace MusicPipeBot.Services.Telegram.Core;
 
 public interface IPollingService
 {
