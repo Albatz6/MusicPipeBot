@@ -39,13 +39,13 @@ public static class DbExtensions
     public static async Task ApplyPendingMigrations(this WebApplication app)
     {
         using var scope = app.Services.CreateScope();
-        var userDbContext = scope.ServiceProvider.GetRequiredService<MainContext>();
+        var mainDbContext = scope.ServiceProvider.GetRequiredService<MainDbContext>();
 
         app.Logger.Info("Looking for any pending migrations...");
-        var pendingMigrations = await userDbContext.Database.GetPendingMigrationsAsync();
+        var pendingMigrations = await mainDbContext.Database.GetPendingMigrationsAsync();
         if (pendingMigrations.Any())
         {
-            await userDbContext.Database.MigrateAsync();
+            await mainDbContext.Database.MigrateAsync();
             app.Logger.Info("Applied all migrations");
         }
     }

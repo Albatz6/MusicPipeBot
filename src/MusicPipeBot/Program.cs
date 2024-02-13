@@ -15,8 +15,8 @@ builder.Configuration.GetSection(AppSettings.SectionName).Bind(appSettings);
 builder.AddAndConfigureServices(appSettings);
 
 var app = builder.Build();
-// await app.WaitForDbConnection();
-// await app.ApplyPendingMigrations();
+await app.WaitForDbConnection();
+await app.ApplyPendingMigrations();
 
 app.MapPost(
     "/yandex/sessionUpdate",
