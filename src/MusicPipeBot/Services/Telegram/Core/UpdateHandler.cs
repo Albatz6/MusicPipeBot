@@ -1,4 +1,5 @@
-﻿using MusicPipeBot.Services.Telegram.Updaters;
+﻿using AqueductCommon.Extensions;
+using MusicPipeBot.Services.Telegram.Updaters;
 using Telegram.Bot;
 using Telegram.Bot.Exceptions;
 using Telegram.Bot.Polling;
@@ -6,7 +7,7 @@ using Telegram.Bot.Types;
 
 namespace MusicPipeBot.Services.Telegram.Core;
 
-public class UpdateHandlerService(IMessageUpdater messageUpdater, ILogger<UpdateHandlerService> logger) : IUpdateHandler
+public class UpdateHandler(IMessageUpdater messageUpdater, ILogger<UpdateHandler> logger) : IUpdateHandler
 {
     public async Task HandleUpdateAsync(ITelegramBotClient _, Update update, CancellationToken stoppingToken)
     {
@@ -28,7 +29,7 @@ public class UpdateHandlerService(IMessageUpdater messageUpdater, ILogger<Update
             _ => exception.ToString()
         };
 
-        logger.LogInformation("Polling failure. Error: {errorMessage}", errorMessage);
+        logger.Error("Polling failure. Error: {errorMessage}", errorMessage);
 
         // Cooldown in case of network connection error
         if (exception is RequestException)
@@ -37,7 +38,7 @@ public class UpdateHandlerService(IMessageUpdater messageUpdater, ILogger<Update
 
     private Task HandleUnknownUpdate(Update update)
     {
-        logger.LogInformation("Unknown or unsupported update type: {UpdateType}", update.Type);
+        logger.Info("Unknown or unsupported update type: {UpdateType}", update.Type);
         return Task.CompletedTask;
     }
 }

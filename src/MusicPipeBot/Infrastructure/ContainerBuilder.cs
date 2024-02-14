@@ -27,13 +27,13 @@ public static class ContainerBuilder
         builder.Services.AddDbContext<MainDbContext>();
 
         builder.Services.AddSingleton<IMessageUpdater, MessageUpdater>();
-        builder.Services.AddSingleton<IUpdateHandler, UpdateHandlerService>();
+        builder.Services.AddSingleton<IUpdateHandler, UpdateHandler>();
         builder.Services.AddSingleton<IReceiverService, ReceiverService>();
         builder.Services.AddSingleton<IPollingService, PollingService>();
 
-        builder.Services.AddSingleton<IPipeService, PipeService>();
-        builder.Services.AddSingleton<IWebhooksService, WebhooksService>();
-        builder.Services.AddSingleton<IHostedService, HostingService>();
+        builder.Services.AddTransient<IPipeService, PipeService>();
+        builder.Services.AddScoped<IWebhooksService, WebhooksService>();
+        builder.Services.AddHostedService<HostingService>();
 
         builder.Services.AddOpenTelemetry().WithTracing(b => b.AddAspNetCoreInstrumentation().AddConsoleExporter());
         builder.Services.AddRateLimiter(settings.RateLimit);

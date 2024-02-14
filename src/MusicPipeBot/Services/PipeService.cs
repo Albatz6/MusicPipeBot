@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using System.Runtime.InteropServices;
+using AqueductCommon.Extensions;
 
 namespace MusicPipeBot.Services;
 
@@ -25,19 +26,19 @@ public class PipeService(ILogger<PipeService> logger) : IPipeService
             var result = ExecuteCommandLine($"spotdl download {query}", downloadPath);
             if (result.Contains("SongError: No results found for"))
             {
-                logger.LogWarning("Couldn't find track download link for query '{query}'", query);
+                logger.Warn("Couldn't find track download link for query '{query}'", query);
                 RemoveTemporaryDirectories(new[] { downloadId.ToString() });
                 return null;
             }
 
             var trackPath = Directory.GetFiles(downloadPath).FirstOrDefault();
-            logger.LogInformation("Loaded file {path}", trackPath);
-            logger.LogInformation("Full SpotDL response: {response}", result);
+            logger.Info("Loaded file {path}", trackPath);
+            logger.Info("Full SpotDL response: {response}", result);
             return trackPath;
         }
         catch (Exception e)
         {
-            logger.LogError("SpotDL execution failed. Error: {message}", e.Message);
+            logger.Error("SpotDL execution failed. Error: {message}", e.Message);
             return null;
         }
     }
@@ -52,12 +53,12 @@ public class PipeService(ILogger<PipeService> logger) : IPipeService
             }
             catch (Exception ex)
             {
-                logger.LogError("Couldn't delete dir {name}. Error: {error}", dir, ex.Message);
+                logger.Error("Couldn't delete dir {name}. Error: {error}", dir, ex.Message);
                 return false;
             }
         }
 
-        logger.LogInformation("Successfully removed all temporary directories");
+        logger.Info("Successfully removed all temporary directories");
         return true;
     }
 

@@ -1,4 +1,5 @@
-﻿using Telegram.Bot;
+﻿using AqueductCommon.Extensions;
+using Telegram.Bot;
 using Telegram.Bot.Polling;
 using Telegram.Bot.Types.Enums;
 
@@ -27,7 +28,7 @@ public class ReceiverService(
         };
 
         var bot = await botClient.GetMeAsync(stoppingToken);
-        logger.LogInformation("Start receiving updates for {botName}", bot.Username ?? "MusicPipeBot");
+        logger.Info("Start receiving updates for {botName}", bot.Username ?? "MusicPipeBot");
 
         await botClient.ReceiveAsync(
             updateHandler: updateHandler, receiverOptions: receiverOptions, cancellationToken: stoppingToken);

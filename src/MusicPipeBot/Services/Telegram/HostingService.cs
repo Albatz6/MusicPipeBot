@@ -1,4 +1,5 @@
-﻿using MusicPipeBot.Services.Telegram.Core;
+﻿using AqueductCommon.Extensions;
+using MusicPipeBot.Services.Telegram.Core;
 
 namespace MusicPipeBot.Services.Telegram;
 
@@ -10,7 +11,7 @@ public class HostingService(
 {
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        logger.LogInformation("HostingService is starting...");
+        logger.Info("HostingService is starting...");
         if (!await WaitForAppStartup(lifetime, stoppingToken))
             return;
 

@@ -1,4 +1,5 @@
-﻿using Telegram.Bot;
+﻿using AqueductCommon.Extensions;
+using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 
@@ -13,7 +14,7 @@ public class MessageUpdater(ITelegramBotClient botClient, IPipeService pipe, ILo
 {
     public async Task ProcessMessageReceive(Message message, CancellationToken stoppingToken)
     {
-        logger.LogInformation(
+        logger.Info(
             "Received message from {user}. Message type: {MessageType}", message.From, message.Type);
         if (message.Text is not { } messageText)
             return;
@@ -25,7 +26,7 @@ public class MessageUpdater(ITelegramBotClient botClient, IPipeService pipe, ILo
             _ => await ShowUsage(message, stoppingToken)
         };
 
-        logger.LogInformation("The message was sent with id: {SentMessageId}", sentMessage.MessageId);
+        logger.Info("The message was sent with id: {SentMessageId}", sentMessage.MessageId);
     }
 
     private async Task<Message> SendStartingReply(Message message, CancellationToken stoppingToken) =>
@@ -57,7 +58,7 @@ public class MessageUpdater(ITelegramBotClient botClient, IPipeService pipe, ILo
         var url = GetUrlFromQuery(message.Text);
         if (url is null)
         {
-            logger.LogWarning("Invalid URL. Full user's message: '{url}'", message.Text);
+            logger.Warn("Invalid URL. Full user's message: '{url}'", message.Text);
             var sentMessage = await SendTextMessage(
                 message.Chat.Id,
                 "Invalid URL. Check if you're trying to download a track, not an album or any other playlist",
@@ -65,7 +66,7 @@ public class MessageUpdater(ITelegramBotClient botClient, IPipeService pipe, ILo
             return (sentMessage, null);
         }
 
-        logger.LogInformation("Started track downloading & sending. Query: {query}", url);
+        logger.Info("Started track downloading & sending. Query: {query}", url);
         await SendTextMessage(message.Chat.Id, "Downloading the track can take up to a minute, please wait :)", stoppingToken);
 
         var trackFile = pipe.DownloadTrack(url);

@@ -1,4 +1,6 @@
-﻿namespace MusicPipeBot.Services.Telegram.Core;
+﻿using AqueductCommon.Extensions;
+
+namespace MusicPipeBot.Services.Telegram.Core;
 
 public interface IPollingService
 {
@@ -15,7 +17,7 @@ public class PollingService(IReceiverService receiver, ILogger<PollingService> l
         }
         catch (Exception ex)
         {
-            logger.LogError("Polling failed with exception: {exception}", ex);
+            logger.Error("Polling failed with exception: {exception}", ex);
 
             // Cooldown if something goes wrong
             await Task.Delay(TimeSpan.FromSeconds(3), stoppingToken);
