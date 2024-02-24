@@ -12,25 +12,33 @@ namespace MusicPipeBot.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
-                name: "Users",
+                name: "UserStates",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    TelegramId = table.Column<string>(type: "character varying(25)", maxLength: 25, nullable: false),
+                    TelegramId = table.Column<long>(type: "bigint", nullable: false),
+                    Name = table.Column<int>(type: "integer", nullable: false),
+                    Context = table.Column<string>(type: "jsonb", nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Users", x => x.Id);
+                    table.PrimaryKey("PK_UserStates", x => x.Id);
                 });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_UserStates_TelegramId",
+                table: "UserStates",
+                column: "TelegramId",
+                unique: true);
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "Users");
+                name: "UserStates");
         }
     }
 }

@@ -12,10 +12,14 @@
         <PrivateAssets>all</PrivateAssets>
         <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       </PackageReference>
+      <PackageReference Include="Microsoft.EntityFrameworkCore.Proxies" Version="8.0.2" />
       <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.0" />
       <PackageReference Include="OpenTelemetry.Exporter.Console" Version="1.7.0" />
       <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.7.0" />
       <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.7.1" />
       <PackageReference Include="Telegram.Bot" Version="19.0.0" />
+    </ItemGroup>
+    <ItemGroup>
+      <Folder Include="Migrations\" />
     </ItemGroup>
 </Project>

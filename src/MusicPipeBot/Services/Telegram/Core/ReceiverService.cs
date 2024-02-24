@@ -7,7 +7,7 @@ namespace MusicPipeBot.Services.Telegram.Core;
 
 public interface IReceiverService
 {
-    Task ReceiveAsync(CancellationToken stoppingToken);
+    Task ReceiveAsync(CancellationToken cancellationToken);
 }
 
 public class ReceiverService(
@@ -17,20 +17,20 @@ public class ReceiverService(
     : IReceiverService
 {
     /// <summary>
-    /// Start to service Updates with UpdateHandlerService
+    /// Start to service Updates with UpdateHandler
     /// </summary>
-    public async Task ReceiveAsync(CancellationToken stoppingToken)
+    public async Task ReceiveAsync(CancellationToken cancellationToken)
     {
         var receiverOptions = new ReceiverOptions
         {
-            AllowedUpdates = Array.Empty<UpdateType>(),
+            AllowedUpdates = [UpdateType.Message, UpdateType.CallbackQuery],
             ThrowPendingUpdates = true
         };
 
-        var bot = await botClient.GetMeAsync(stoppingToken);
+        var bot = await botClient.GetMeAsync(cancellationToken);
         logger.Info("Start receiving updates for {botName}", bot.Username ?? "MusicPipeBot");
 
         await botClient.ReceiveAsync(
-            updateHandler: updateHandler, receiverOptions: receiverOptions, cancellationToken: stoppingToken);
+            updateHandler: updateHandler, receiverOptions: receiverOptions, cancellationToken: cancellationToken);
     }
 }

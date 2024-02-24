@@ -8,11 +8,11 @@ public class MainDbContext(IConfiguration configuration) : DbContext
 {
     private const string DbConnectionPropertyName = "PostgreSQL";
 
-    public DbSet<User> Users { get; set; } = null!;
+    public DbSet<UserState> UserStates { get; set; } = null!;
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder) =>
         optionsBuilder
-            // .UseLazyLoadingProxies()
+            .UseLazyLoadingProxies()
             .UseNpgsql(configuration.GetConnectionString(DbConnectionPropertyName));
 
     public override Task<int> SaveChangesAsync(bool acceptAllChangesOnSuccess, CancellationToken token = default)

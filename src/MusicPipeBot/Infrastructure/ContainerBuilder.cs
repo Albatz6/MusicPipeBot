@@ -7,10 +7,12 @@ using Microsoft.Kiota.Http.HttpClientLibrary.Middleware;
 using Microsoft.Kiota.Http.HttpClientLibrary.Middleware.Options;
 using MusicPipeBot.DbContexts;
 using MusicPipeBot.Infrastructure.Settings;
+using MusicPipeBot.Repositories;
 using MusicPipeBot.Services;
 using MusicPipeBot.Services.Telegram;
 using MusicPipeBot.Services.Telegram.Core;
-using MusicPipeBot.Services.Telegram.Updaters;
+using MusicPipeBot.StateMachine;
+using MusicPipeBot.StateMachine.States;
 using OpenTelemetry.Trace;
 using Telegram.Bot;
 using Telegram.Bot.Polling;
@@ -21,19 +23,30 @@ public static class ContainerBuilder
 {
     public static void AddAndConfigureServices(this WebApplicationBuilder builder, AppSettings settings)
     {
-        builder.Services.AddSingleton<ITelegramBotClient>(new TelegramBotClient(settings.TelegramBot.Token));
+        builder.Services.AddHttpClient("telegram_bot_client")
+            .AddTypedClient<ITelegramBotClient>((httpClient, _) =>
+            {
+                TelegramBotClientOptions options = new(settings.TelegramBot.Token);
+                return new TelegramBotClient(options, httpClient);
+            });
+        // builder.Services.AddSingleton<ITelegramBotClient>(new TelegramBotClient(settings.TelegramBot.Token));
         builder.Services.AddApiClient(settings);
 
         builder.Services.AddDbContext<MainDbContext>();
+        builder.Services.AddScoped<IUserStatesRepository, UserStatesRepository>();
 
-        builder.Services.AddSingleton<IMessageUpdater, MessageUpdater>();
-        builder.Services.AddSingleton<IUpdateHandler, UpdateHandler>();
-        builder.Services.AddSingleton<IReceiverService, ReceiverService>();
-        builder.Services.AddSingleton<IPollingService, PollingService>();
+        builder.Services.AddScoped<IUpdateHandler, UpdateHandler>();
+        builder.Services.AddScoped<IReceiverService, ReceiverService>();
+        builder.Services.AddScoped<ISendingService, SendingService>();
+        builder.Services.AddHostedService<TelegramService>();
 
-        builder.Services.AddTransient<IPipeService, PipeService>();
+        builder.Services.AddScoped<IStateHandler, StateHandler>();
+        builder.Services.AddScoped<IState, InitialState>();
+        builder.Services.AddScoped<InitialState>();
+
+        builder.Services.AddScoped<IPipeService, PipeService>();
+        builder.Services.AddScoped<IDownloadService, DownloadService>();
         builder.Services.AddScoped<IWebhooksService, WebhooksService>();
-        builder.Services.AddHostedService<HostingService>();
 
         builder.Services.AddOpenTelemetry().WithTracing(b => b.AddAspNetCoreInstrumentation().AddConsoleExporter());
         builder.Services.AddRateLimiter(settings.RateLimit);
