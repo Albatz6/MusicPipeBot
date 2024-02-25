@@ -13,6 +13,8 @@ public interface IPipeService
 public class PipeService(ILogger<PipeService> logger) : IPipeService
 {
     private const string UserfilesDirName = "userfiles";
+    private const string SpotdlDownloadCommand = "spotdl download";
+    private const string SpotdlMacDownloadCommand = "~/.spotdl/spotdl download";
 
     /// <returns>Path to saved file</returns>
     public string? DownloadTrack(string query)
@@ -23,7 +25,8 @@ public class PipeService(ILogger<PipeService> logger) : IPipeService
 
         try
         {
-            var result = ExecuteCommandLine($"spotdl download {query}", downloadPath);
+            var spotdlCommand = RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? SpotdlMacDownloadCommand : SpotdlDownloadCommand;
+            var result = ExecuteCommandLine($"{spotdlCommand} {query}", downloadPath);
             if (result.Contains("SongError: No results found for"))
             {
                 logger.Warn("Couldn't find track download link for query '{query}'", query);
@@ -78,8 +81,8 @@ public class PipeService(ILogger<PipeService> logger) : IPipeService
         process.StartInfo = startInfo;
         process.Start();
 
-        var standardOutput = process.StandardOutput.ReadToEnd();
         process.WaitForExit();
+        var standardOutput = process.StandardOutput.ReadToEnd();
 
         return standardOutput;
     }

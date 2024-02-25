@@ -45,7 +45,6 @@ public static class ContainerBuilder
         builder.Services.AddScoped<InitialState>();
 
         builder.Services.AddScoped<IPipeService, PipeService>();
-        builder.Services.AddScoped<IDownloadService, DownloadService>();
         builder.Services.AddScoped<IWebhooksService, WebhooksService>();
 
         builder.Services.AddOpenTelemetry().WithTracing(b => b.AddAspNetCoreInstrumentation().AddConsoleExporter());

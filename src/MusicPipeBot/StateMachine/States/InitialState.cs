@@ -24,6 +24,15 @@ public class InitialState(
             return executionResult;
         }
 
+        if (message.Text is null)
+        {
+            logger.Info("Update {uid} contains message without any text, returning from the initial state", update.Id);
+            var errorMessage = await sendingService.SendTextMessage(message.Chat.Id, "This message type is unsupported by the bot", cancellationToken);
+
+            var executionResult = new StateExecutionResult { NextStateName = userState.Name, SentMessage = errorMessage };
+            return executionResult;
+        }
+
         return message.Text!.Split(' ')[0] switch
         {
             "/start" => await SendStartingReply(message, cancellationToken),
@@ -62,7 +71,7 @@ public class InitialState(
         await using (FileStream fileStream = new(trackFile, FileMode.Open, FileAccess.Read, FileShare.Read))
             sentMessage = await sendingService.SendAudio(message.Chat.Id, new InputFileStream(fileStream, fileName), cancellationToken);
 
-        // _ = await Task.Run(() => pipeService.RemoveTemporaryDirectories(new[] { downloadId }), cancellationToken);
+        _ = await Task.Run(() => pipeService.RemoveTemporaryDirectories(new[] { downloadId }), cancellationToken);
         return new StateExecutionResult
         {
             NextStateName = StateName.Initial,
