@@ -1,4 +1,4 @@
-﻿FROM mcr.microsoft.com/dotnet/runtime:8.0 AS base
+﻿FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
 WORKDIR /app
 
 RUN apt-get update && apt-get upgrade -y
@@ -13,10 +13,10 @@ RUN pip3 install spotdl --break-system-packages
 
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
-COPY ["MusicPipeBot.csproj", "./"]
-RUN dotnet restore "MusicPipeBot.csproj"
+COPY ["MusicPipeBot/MusicPipeBot.csproj", "MusicPipeBot/"]
+RUN dotnet restore "MusicPipeBot/MusicPipeBot.csproj"
 COPY . .
-WORKDIR "/src/"
+WORKDIR "/src/MusicPipeBot"
 RUN dotnet build "MusicPipeBot.csproj" -c Release -o /app/build
 
 FROM build AS publish
