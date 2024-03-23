@@ -6,8 +6,8 @@
         <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
     </PropertyGroup>
     <ItemGroup>
-      <PackageReference Include="AqueductApiClient" Version="1.0.0" />
-      <PackageReference Include="AqueductCommon" Version="1.0.1" />
+      <PackageReference Include="AqueductApiClient" Version="1.0.1" />
+      <PackageReference Include="AqueductCommon" Version="1.0.3" />
       <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.1">
         <PrivateAssets>all</PrivateAssets>
         <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>

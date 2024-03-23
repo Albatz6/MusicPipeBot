@@ -12,7 +12,7 @@ public static class DbExtensions
     public static async Task WaitForDbConnection(this WebApplication app)
     {
         const int attemptsCount = 3;
-        const int retryDelayInSeconds = 5000;
+        const int retryDelayInMilliseconds = 5000;
 
         await using var connection = new NpgsqlConnection(app.Configuration.GetConnectionString(DbConnectionPropertyName));
 
@@ -29,7 +29,7 @@ public static class DbExtensions
                 app.Logger.Warn(
                     "Failed to connect to the database. Attempt: {current}/{overall}. Message: {message}",
                     i + 1, attemptsCount, e.Message);
-                Thread.Sleep(retryDelayInSeconds);
+                Thread.Sleep(retryDelayInMilliseconds);
             }
         }
 
@@ -42,11 +42,11 @@ public static class DbExtensions
         var mainDbContext = scope.ServiceProvider.GetRequiredService<MainDbContext>();
 
         app.Logger.Info("Looking for any pending migrations...");
-        var pendingMigrations = await mainDbContext.Database.GetPendingMigrationsAsync();
-        if (pendingMigrations.Any())
+        var pendingMigrations = (await mainDbContext.Database.GetPendingMigrationsAsync()).ToList();
+        if (pendingMigrations.Count > 0)
         {
             await mainDbContext.Database.MigrateAsync();
-            app.Logger.Info("Applied all migrations");
+            app.Logger.Info($"Applied all migrations ({pendingMigrations.Count} overall)");
         }
     }
 }

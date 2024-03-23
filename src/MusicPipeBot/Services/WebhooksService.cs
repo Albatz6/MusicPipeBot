@@ -18,10 +18,11 @@ public class WebhooksService(AqueductClient apiClient, ILogger<WebhooksService> 
 
         try
         {
-            await apiClient.Auth.Yandex.Session.Update.PostAsync(
+            await apiClient.Auth.Yandex.Creds.Update.PostAsync(
                 new Aqueduct.Client.Models.UpdateYandexSessionIdRequest
                 {
                     Phrase = request.Phrase,
+                    Token = request.Token,
                     SessionId = request.SessionId
                 });
 

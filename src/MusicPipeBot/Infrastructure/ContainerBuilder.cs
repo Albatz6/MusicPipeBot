@@ -29,7 +29,6 @@ public static class ContainerBuilder
                 TelegramBotClientOptions options = new(settings.TelegramBot.Token);
                 return new TelegramBotClient(options, httpClient);
             });
-        // builder.Services.AddSingleton<ITelegramBotClient>(new TelegramBotClient(settings.TelegramBot.Token));
         builder.Services.AddApiClient(settings);
 
         builder.Services.AddDbContext<MainDbContext>();
