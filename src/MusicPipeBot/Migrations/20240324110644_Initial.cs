@@ -17,6 +17,7 @@ namespace MusicPipeBot.Migrations
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     TelegramId = table.Column<long>(type: "bigint", nullable: false),
+                    ConnectionPhrase = table.Column<string>(type: "text", nullable: false),
                     Name = table.Column<int>(type: "integer", nullable: false),
                     Context = table.Column<string>(type: "jsonb", nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),

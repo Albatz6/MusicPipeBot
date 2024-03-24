@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace MusicPipeBot.Migrations
 {
     [DbContext(typeof(MainDbContext))]
-    [Migration("20240224052807_Initial")]
+    [Migration("20240324110644_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -33,6 +33,10 @@ namespace MusicPipeBot.Migrations
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
+
+                    b.Property<string>("ConnectionPhrase")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<string>("Context")
                         .HasColumnType("jsonb");

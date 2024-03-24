@@ -9,6 +9,8 @@ public class UserState : BaseStoredModel
 {
     public required long TelegramId { get; set; }
 
+    public required string ConnectionPhrase { get; set; }
+
     public required StateName Name { get; set; }
 
     [Column(TypeName = "jsonb")]

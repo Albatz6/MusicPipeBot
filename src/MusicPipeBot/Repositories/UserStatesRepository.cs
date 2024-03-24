@@ -10,14 +10,14 @@ namespace MusicPipeBot.Repositories;
 
 public interface IUserStatesRepository
 {
-    Task<Result<UserState>> Add(long telegramUserId);
+    Task<Result<UserState>> Add(long telegramUserId, string connectionPhrase);
     Task<Result<UserState>> Get(long telegramUserId);
     Task<Result<UserState>> Update(UserState currentState, StateName newStateName, StateContext? newStateContext);
 }
 
 public class UserStatesRepository(MainDbContext dbContext, ILogger<UserStatesRepository> logger) : IUserStatesRepository
 {
-    public async Task<Result<UserState>> Add(long telegramUserId)
+    public async Task<Result<UserState>> Add(long telegramUserId, string connectionPhrase)
     {
         try
         {
@@ -26,6 +26,7 @@ public class UserStatesRepository(MainDbContext dbContext, ILogger<UserStatesRep
             var user = new UserState
             {
                 TelegramId = telegramUserId,
+                ConnectionPhrase = connectionPhrase,
                 Name = StateName.Initial
             };
             var result = await dbContext.UserStates.AddAsync(user);

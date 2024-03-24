@@ -31,6 +31,10 @@ namespace MusicPipeBot.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<string>("ConnectionPhrase")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<string>("Context")
                         .HasColumnType("jsonb");
 

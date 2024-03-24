@@ -1,5 +1,9 @@
+using System.Net;
+using Aqueduct.Client;
+using Aqueduct.Client.Models;
 using AqueductCommon.Extensions;
 using AqueductCommon.Results;
+using Microsoft.Kiota.Abstractions;
 using MusicPipeBot.Models;
 using MusicPipeBot.Repositories;
 using MusicPipeBot.Services.Telegram.Core;
@@ -14,6 +18,7 @@ public interface IStateHandler
 }
 
 public class StateHandler(
+    AqueductClient aqueductClient,
     ISendingService sendingService,
     IServiceProvider serviceProvider,
     IUserStatesRepository userStatesRepository,
@@ -24,65 +29,77 @@ public class StateHandler(
         var userStateResult = await GetOrCreateRequestingUserState(user.Id);
         if (!userStateResult.IsSuccess)
         {
-            await sendingService.SendTextMessage(chatId, "Failed to get or add user state", stoppingToken);
+            await sendingService.SendTextMessage(chatId, "Failed to get or add user data", stoppingToken);
             return;
         }
         var userState = userStateResult.Value;
 
-        // Another option is to have a base state handler that always runs before executing current state handler
-        // In this case base state handler could be InitialState
-        var executionResult = update.Message is null
-            ? await HandleCallbackUpdate(update, user, userState, stoppingToken)
-            : await HandleMessageUpdate(update, user, userState, stoppingToken);
-        if (!executionResult.IsSuccess)
+        var initialHandlerExecutionResult =
+            await serviceProvider.GetRequiredService<InitialState>().Execute(userState, update, stoppingToken);
+        if (initialHandlerExecutionResult.Completed)
         {
-            await sendingService.SendTextMessage(chatId, "Failed to execute user state", stoppingToken);
+            logger.Info("Executed initial state, skipping the rest");
+            await UpdateUserState(userState, chatId, initialHandlerExecutionResult, stoppingToken);
             return;
         }
 
-        await UpdateUserState(userState, chatId, executionResult.Value!, stoppingToken);
+        await ExecuteNonInitialState(userState, update, user, chatId, stoppingToken);
+    }
+
+    private async Task ExecuteNonInitialState(UserState userState, Update update, User user, long chatId, CancellationToken cancellationToken)
+    {
+        var stateHandlerType = typeof(IState);
+        var stateHandler = AppDomain.CurrentDomain.GetAssemblies()
+            .SelectMany(a => a.GetTypes())
+            .Where(t => t.IsAssignableFrom(stateHandlerType))
+            .Select(t => serviceProvider.GetRequiredService(t) as IState)
+            .SingleOrDefault(s => s!.CurrentStateName == userState.Name);
+
+        if (stateHandler == default)
+        {
+            logger.Error("Failed to get state handler for user {tgId} with state {userState}", user, userState.Name);
+            await sendingService.SendTextMessage(chatId, "Failed to handle the message due to an internal error. Try later", cancellationToken);
+            return;
+        }
+
+        logger.Info("Chosen {state} handler for user {tgId} with state {userState}", stateHandler.CurrentStateName, user, userState.Name);
+        var executionResult = await stateHandler.Execute(userState, update, cancellationToken);
+        await UpdateUserState(userState, chatId, executionResult, cancellationToken);
     }
 
     private async Task<Result<UserState>> GetOrCreateRequestingUserState(long telegramUserId)
     {
-        var existingUserResult = await userStatesRepository.Get(telegramUserId);
-        if (existingUserResult.IsSuccess)
-            return existingUserResult;
+        var existingUserStateResult = await userStatesRepository.Get(telegramUserId);
+        if (existingUserStateResult.IsSuccess)
+            return existingUserStateResult;
 
-        return await userStatesRepository.Add(telegramUserId);
+        var registeredUserResult = await RegisterUser(telegramUserId);
+        if (!registeredUserResult.IsSuccess)
+            return (registeredUserResult.Exception, registeredUserResult.StatusCode);
+
+        // Kiota produces only nullable models atm. Issue on this topic: https://github.com/microsoft/kiota/issues/3911
+        return await userStatesRepository.Add(telegramUserId, registeredUserResult.Value.Phrase!);
     }
 
-    private async Task<Result<StateExecutionResult>> HandleCallbackUpdate(
-        Update update, User user, UserState userState, CancellationToken stoppingToken)
+    private async Task<Result<UserResponse>> RegisterUser(long telegramUserId)
     {
-        var stateActionTask = GetStateActionTask(update, user, userState, stoppingToken);
-        return await stateActionTask;
-    }
-
-    private Task<Result<StateExecutionResult>> GetStateActionTask(
-        Update update, User user, UserState userState, CancellationToken stoppingToken) =>
-        userState.Name switch
+        try
         {
-            StateName.Initial => serviceProvider.GetRequiredService<InitialState>().Execute(userState, update, stoppingToken),
-            // StateName.UploadToYandex => serviceProvider.GetService<YandexUploadState>()?.Execute(userState, update, stoppingToken)!,
-            _ => HandleNonexistentState(userState.Name, user.Username!, stoppingToken)
-        };
-
-    private async Task<Result<StateExecutionResult>> HandleNonexistentState(
-        StateName currentStateName, string telegramUsername, CancellationToken cancellationToken)
-    {
-        var errorMessage = await sendingService.SendTextMessage(
-            telegramUsername,
-            "Error occurred on state handling. Try your request later.",
-            cancellationToken);
-
-        logger.Error("Nonexistent state {state} for user {tgUsername}", currentStateName, telegramUsername);
-
-        return new StateExecutionResult
+            var registrationResult = await aqueductClient.Users.PostAsync(new RegisterUserRequest
+            {
+                TelegramUserId = telegramUserId.ToString()
+            });
+            return registrationResult!;
+        }
+        catch (Exception e)
         {
-            NextStateName = StateName.Initial,
-            SentMessage = errorMessage
-        };
+            var apiException = e as ApiException;
+
+            logger.Error("Failed to register new user with Telegram id {id}. Status code: {code}. Message: {message}",
+                telegramUserId, apiException?.ResponseStatusCode, e.Message);
+
+            return (e, HttpStatusCode.InternalServerError);
+        }
     }
 
     private async Task UpdateUserState(UserState userState, long chatId, StateExecutionResult executionResult, CancellationToken stoppingToken)
@@ -94,15 +111,5 @@ public class StateHandler(
                 userState.TelegramId, userStateUpdatingResult.Exception.Message);
             await sendingService.SendTextMessage(chatId, "Unexpected error occurred on state updating. Try later", stoppingToken);
         }
-    }
-
-    private async Task<Result<StateExecutionResult>> HandleMessageUpdate(Update update, User user, UserState userState, CancellationToken stoppingToken)
-    {
-        var initialStateExecutionResult = await serviceProvider.GetRequiredService<InitialState>().Execute(userState, update, stoppingToken);
-        if (!initialStateExecutionResult.IsSuccess || initialStateExecutionResult.Value.SentMessage != null)
-            return initialStateExecutionResult;
-
-        var currentStateAction = GetStateActionTask(update, user, userState, stoppingToken);
-        return await currentStateAction;
     }
 }
