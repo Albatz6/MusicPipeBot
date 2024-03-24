@@ -1,4 +1,5 @@
 using MusicPipeBot.Models;
+using MusicPipeBot.StateMachine.Contexts;
 using Telegram.Bot.Types;
 
 namespace MusicPipeBot.StateMachine;
@@ -9,14 +10,14 @@ public class StateExecutionResult
         new()
         {
             Completed = false,
-            NextStateName = userState.Name
+            NextStateName = userState.CurrentState
         };
 
     public static StateExecutionResult GetCompleted(UserState userState, Message sentMessage) =>
         new()
         {
             Completed = true,
-            NextStateName = userState.Name,
+            NextStateName = userState.CurrentState,
             SentMessage = sentMessage
         };
 
@@ -28,7 +29,7 @@ public class StateExecutionResult
             SentMessage = sentMessage
         };
 
-    public static StateExecutionResult GetTransitioned(StateName stateName, StateContext stateContext, Message sentMessage) =>
+    public static StateExecutionResult GetTransitioned(StateName stateName, IStateContext stateContext, Message sentMessage) =>
         new()
         {
             Completed = true,
@@ -41,7 +42,7 @@ public class StateExecutionResult
 
     public required StateName NextStateName { get; set; }
 
-    public StateContext? NextStateContext { get; set; }
+    public IStateContext? NextStateContext { get; set; }
 
     public Message? SentMessage { get; set; }
 }

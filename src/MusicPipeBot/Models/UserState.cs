@@ -11,7 +11,7 @@ public class UserState : BaseStoredModel
 
     public required string ConnectionPhrase { get; set; }
 
-    public required StateName Name { get; set; }
+    public required StateName CurrentState { get; set; }
 
     [Column(TypeName = "jsonb")]
     // ReSharper disable once EntityFramework.ModelValidation.UnlimitedStringLength

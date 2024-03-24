@@ -1,6 +1,5 @@
 using AqueductCommon.Extensions;
 using MusicPipeBot.Models;
-using MusicPipeBot.Services;
 using MusicPipeBot.Services.Telegram.Core;
 using Telegram.Bot.Types;
 
@@ -8,7 +7,7 @@ namespace MusicPipeBot.StateMachine.States;
 
 public class InitialState(
     ISendingService sendingService,
-    IDownloadService downloadService,
+    IServiceProvider serviceProvider,
     ILogger<InitialState> logger)
     : IState
 {
@@ -16,6 +15,7 @@ public class InitialState(
 
     public async Task<StateExecutionResult> Execute(UserState userState, Update update, CancellationToken cancellationToken)
     {
+        // TODO: Add attributes for checking non-callback and callback states
         var message = update.Message;
         if (message is null)
         {
@@ -33,7 +33,7 @@ public class InitialState(
         return message.Text!.Split(' ')[0] switch
         {
             "/start" => await SendStartingReply(message, cancellationToken),
-            "/loadtrack" => await SendTrackFile(message, cancellationToken),
+            "/loadtrack" => await ProceedToDownloadingState(userState, update, cancellationToken),
             _ => await ShowUsage(message, cancellationToken)
         };
     }
@@ -46,16 +46,10 @@ public class InitialState(
         return StateExecutionResult.GetCompleted(CurrentStateName, sentMessage);
     }
 
-    private async Task<StateExecutionResult> SendTrackFile(Message message, CancellationToken cancellationToken)
+    private async Task<StateExecutionResult> ProceedToDownloadingState(UserState userState, Update update, CancellationToken cancellationToken)
     {
-        var (sentMessage, downloadId) = await downloadService.DownloadTrack(message, cancellationToken);
-        if (downloadId is null)
-            return StateExecutionResult.GetCompleted(CurrentStateName, sentMessage);
-
-        return StateExecutionResult.GetTransitioned(
-            CurrentStateName,
-            new YandexUploadStateContext { DownloadId = downloadId },
-            sentMessage);
+        var downloadingStateHandler = serviceProvider.GetRequiredService<DownloadingState>();
+        return await downloadingStateHandler.Execute(userState, update, cancellationToken);
     }
 
     private async Task<StateExecutionResult> ShowUsage(Message message, CancellationToken cancellationToken)

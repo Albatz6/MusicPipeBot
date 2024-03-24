@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using MusicPipeBot.DbContexts;
 using MusicPipeBot.Extensions;
 using MusicPipeBot.Models;
-using MusicPipeBot.StateMachine;
+using MusicPipeBot.StateMachine.Contexts;
 
 namespace MusicPipeBot.Repositories;
 
@@ -12,7 +12,7 @@ public interface IUserStatesRepository
 {
     Task<Result<UserState>> Add(long telegramUserId, string connectionPhrase);
     Task<Result<UserState>> Get(long telegramUserId);
-    Task<Result<UserState>> Update(UserState currentState, StateName newStateName, StateContext? newStateContext);
+    Task<Result<UserState>> Update(UserState currentState, StateName newStateName, IStateContext? newStateContext);
 }
 
 public class UserStatesRepository(MainDbContext dbContext, ILogger<UserStatesRepository> logger) : IUserStatesRepository
@@ -27,7 +27,7 @@ public class UserStatesRepository(MainDbContext dbContext, ILogger<UserStatesRep
             {
                 TelegramId = telegramUserId,
                 ConnectionPhrase = connectionPhrase,
-                Name = StateName.Initial
+                CurrentState = StateName.Initial
             };
             var result = await dbContext.UserStates.AddAsync(user);
             await dbContext.SaveChangesAsync();
@@ -54,13 +54,13 @@ public class UserStatesRepository(MainDbContext dbContext, ILogger<UserStatesRep
         return user;
     }
 
-    public async Task<Result<UserState>> Update(UserState currentState, StateName newStateName, StateContext? newStateContext)
+    public async Task<Result<UserState>> Update(UserState currentState, StateName newStateName, IStateContext? newStateContext)
     {
         try
         {
             logger.Info("Updating state for user {telegramId}", currentState.TelegramId);
 
-            currentState.Name = newStateName;
+            currentState.CurrentState = newStateName;
             currentState.Context = newStateContext is not null ? await newStateContext.GetJson() : currentState.Context;
             await dbContext.SaveChangesAsync();
 

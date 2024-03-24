@@ -53,16 +53,16 @@ public class StateHandler(
             .SelectMany(a => a.GetTypes())
             .Where(t => t.IsAssignableFrom(stateHandlerType))
             .Select(t => serviceProvider.GetRequiredService(t) as IState)
-            .SingleOrDefault(s => s!.CurrentStateName == userState.Name);
+            .SingleOrDefault(s => s!.CurrentStateName == userState.CurrentState);
 
         if (stateHandler == default)
         {
-            logger.Error("Failed to get state handler for user {tgId} with state {userState}", user, userState.Name);
+            logger.Error("Failed to get state handler for user {tgId} with state {userState}", user, userState.CurrentState);
             await sendingService.SendTextMessage(chatId, "Failed to handle the message due to an internal error. Try later", cancellationToken);
             return;
         }
 
-        logger.Info("Chosen {state} handler for user {tgId} with state {userState}", stateHandler.CurrentStateName, user, userState.Name);
+        logger.Info("Chosen {state} handler for user {tgId} with state {userState}", stateHandler.CurrentStateName, user, userState.CurrentState);
         var executionResult = await stateHandler.Execute(userState, update, cancellationToken);
         await UpdateUserState(userState, chatId, executionResult, cancellationToken);
     }
